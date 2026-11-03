@@ -8,7 +8,7 @@ function cells() {
 
 describe('Board and Square', () => {
   test('starts with nine empty cells in a 3×3 grid', () => {
-    renderGame()
+    renderGame({ opponent: 'human' })
     const all = cells()
     expect(all).toHaveLength(9)
     expect(all[0]).toHaveAccessibleName('Row 1, column 1, empty')
@@ -18,7 +18,7 @@ describe('Board and Square', () => {
   })
 
   test('clicking cells places alternating X and O marks', async () => {
-    const { user } = renderGame()
+    const { user } = renderGame({ opponent: 'human' })
     await user.click(cells()[4])
     expect(cells()[4]).toHaveTextContent('X')
     expect(cells()[4]).toHaveAccessibleName('Row 2, column 2, X')
@@ -32,7 +32,7 @@ describe('Board and Square', () => {
   })
 
   test('clicking an occupied cell does nothing', async () => {
-    const { user, store } = renderGame()
+    const { user, store } = renderGame({ opponent: 'human' })
     await user.click(cells()[4])
     const before = store.getState()
     await user.click(cells()[4])
@@ -42,15 +42,15 @@ describe('Board and Square', () => {
   })
 
   test('occupied cells use aria-disabled and never the disabled attribute', async () => {
-    const { user } = renderGame()
+    const { user } = renderGame({ opponent: 'human' })
     await user.click(cells()[4])
     expect(cells()[4]).toHaveAttribute('aria-disabled', 'true')
     expect(cells()[4]).not.toHaveAttribute('disabled')
     expect(cells()[0]).not.toHaveAttribute('aria-disabled')
   })
 
-  test('after a win, the winning cells are highlighted and every cell is locked', async () => {
-    const { user } = renderGame()
+  test('after a win, the winning cells are highlighted and every cell can start the next game', async () => {
+    const { user } = renderGame({ opponent: 'human' })
     // X: 0, 1, 2 (top row); O: 3, 4
     for (const i of [0, 3, 1, 4, 2]) await user.click(cells()[i])
 
@@ -59,16 +59,21 @@ describe('Board and Square', () => {
       0, 1, 2,
     ])
     for (const cell of all) {
-      expect(cell).toHaveAttribute('aria-disabled', 'true')
+      expect(cell).not.toHaveAttribute('aria-disabled')
       expect(cell).not.toHaveAttribute('disabled')
     }
 
+    // Selecting a cell starts the next game; it does not place a mark.
     await user.click(all[8])
-    expect(cells()[8]).toHaveTextContent('')
+    for (const cell of cells()) {
+      expect(cell).toHaveTextContent('')
+      expect(cell).not.toHaveAttribute('data-winning')
+    }
+    expect(screen.getByRole('status')).toHaveTextContent("X's turn")
   })
 
   test('a column win highlights that column', async () => {
-    const { user } = renderGame()
+    const { user } = renderGame({ opponent: 'human' })
     // X: 0, 2, 6; O: 1, 4, 7 (middle column)
     for (const i of [0, 1, 2, 4, 6, 7]) await user.click(cells()[i])
     const winning = cells()

@@ -1,6 +1,11 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { playMove } from '../gameSlice'
-import { selectBoard, selectIsGameOver, selectWinningLine } from '../selectors'
+import {
+  selectBoard,
+  selectIsComputerTurn,
+  selectIsGameOver,
+  selectWinningLine,
+} from '../selectors'
 import { Square } from './Square'
 
 export function Board() {
@@ -8,6 +13,7 @@ export function Board() {
   const board = useAppSelector(selectBoard)
   const winningLine = useAppSelector(selectWinningLine)
   const isGameOver = useAppSelector(selectIsGameOver)
+  const isComputerTurn = useAppSelector(selectIsComputerTurn)
 
   return (
     <div className="board" role="group" aria-label="Tic-tac-toe board">
@@ -17,7 +23,8 @@ export function Board() {
           index={index}
           value={value}
           isWinning={winningLine?.includes(index) ?? false}
-          isLocked={isGameOver}
+          isLocked={isComputerTurn}
+          isGameOver={isGameOver}
           onSelect={(i) => dispatch(playMove(i))}
         />
       ))}

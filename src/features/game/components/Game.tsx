@@ -1,18 +1,19 @@
+import { useComputerTurn } from '../useComputerTurn'
 import { Board } from './Board'
-import { NewGameButton } from './NewGameButton'
+import { OpponentPicker } from './OpponentPicker'
 import { Scoreboard } from './Scoreboard'
 import { Status } from './Status'
 import './game.css'
 
 export function Game() {
+  useComputerTurn()
+
   return (
     <main className="game">
-      <h1 className="game-title">Tic-tac-toe</h1>
+      <h1 className="game-title">Tic-tac-slop</h1>
+      <OpponentPicker />
       <Status />
       <Board />
-      <div className="game-controls">
-        <NewGameButton />
-      </div>
       <Scoreboard />
     </main>
   )

@@ -18,6 +18,43 @@
   letter-spacing: -0.02em;
 }
 
+/* Opponent and side choices, side by side. They wrap only if a screen is too narrow for both. */
+.opponent-picker {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 2rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.picker-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  /* Same line height for the shadcn Label ("Opponent") and the plain span ("You play"). */
+  line-height: 1;
+}
+
+/* Overrides the RadioGroup's grid. */
+.picker-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.picker-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .status {
   min-height: 1.75rem;
   font-size: 1.25rem;
@@ -67,14 +104,13 @@
   outline-offset: 2px;
 }
 
-.game-controls {
-  display: flex;
-  justify-content: center;
-}
-
 .scoreboard {
   width: 100%;
   max-width: 22rem;
+}
+
+.scoreboard-title {
+  text-align: center;
 }
 
 .tallies {
@@ -82,6 +118,13 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   text-align: center;
+}
+
+/* Labels such as "Opponent wins" can wrap at phone widths; keep the numbers on one line. */
+.tally {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .tally dt {
