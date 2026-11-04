@@ -16,10 +16,10 @@
 
 ## 3. Verify on GitHub
 
-- [ ] 3.1 Commit on a new branch and push it; verify in the Actions tab that a run starts for the branch and both `Frontend` and `Backend` jobs pass
-- [ ] 3.2 Push a temporary commit with a deliberate type error; verify the type-check step fails, the lint and test steps still report, the backend job still passes, and the commit shows a failing status. Then revert it and verify the next run passes
-- [ ] 3.3 Push a temporary commit that adds a lint warning but no error; verify the lint step fails and the commit shows a failing status. Then revert it
-- [ ] 3.4 Push twice in quick succession on the branch; verify the earlier run is cancelled and the later one completes
+- [x] 3.1 Commit on a new branch and push it; verify in the Actions tab that a run starts for the branch and both `Frontend` and `Backend` jobs pass
+- [x] 3.2 Push a temporary commit with a deliberate type error; verify the type-check step fails, the lint and test steps still report, the backend job still passes, and the commit shows a failing status. Then revert it and verify the next run passes
+- [x] 3.3 Push a temporary commit that adds a lint warning but no error; verify the lint step fails and the commit shows a failing status. Then revert it
+- [x] 3.4 Push twice in quick succession on the branch; verify the earlier run is cancelled and the later one completes
 
 ## Workflow follow-up
 
