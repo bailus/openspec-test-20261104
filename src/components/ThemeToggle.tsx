@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 
-/** localStorage key; the inline script in index.html reads it before first paint. */
+/** localStorage key; the inline script in web/templates/web/index.html reads it before first paint. */
 export const THEME_STORAGE_KEY = 'theme'
 
 /**
- * Light/dark switch fixed to the top-right corner. index.html has already set the `.dark`
+ * Light/dark switch fixed to the top-right corner. The page template has already set the `.dark`
  * class on <html> from the saved choice or the system preference, so the starting state is
  * read from there instead of being worked out again.
  */

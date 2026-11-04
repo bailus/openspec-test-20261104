@@ -8,6 +8,7 @@ import { ResetButton } from './ResetButton'
 import { Scoreboard } from './Scoreboard'
 import { Status } from './Status'
 import './game.css'
+import logoUrl from '@/assets/logo.svg'
 
 export function Game() {
   useComputerTurn()
@@ -25,7 +26,7 @@ export function Game() {
       <header className="game-header">
         {/* Decorative: the title beside it names the app. The logo is solid black, so
             inverting it in dark mode makes it white. */}
-        <img src="/logo.svg" alt="" className="game-logo dark:invert" />
+        <img src={logoUrl} alt="" className="game-logo dark:invert" />
         <h1 className="game-title">Vibe-tac-slop</h1>
       </header>
       <Scoreboard />

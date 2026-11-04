@@ -7,6 +7,19 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Django serves the page and the built files; django-vite reads dist/manifest.json.
+  base: '/static/',
+  publicDir: false,
+  server: {
+    origin: 'http://localhost:5173',
+  },
+  build: {
+    outDir: 'dist',
+    manifest: 'manifest.json',
+    rolldownOptions: {
+      input: 'src/main.tsx',
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
