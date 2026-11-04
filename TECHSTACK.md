@@ -84,6 +84,7 @@ Declared in `pyproject.toml` and pinned in `uv.lock`; managed with uv.
 | `psycopg[binary]` | PostgreSQL driver (psycopg 3). |
 | `django-environ` | Reads settings from the environment and `.env`. |
 | `whitenoise` | Lets Django serve static files and built assets when `DEBUG=False`. |
+| `gunicorn` | Production WSGI server used in the container image. |
 
 ## Application architecture
 
@@ -104,10 +105,10 @@ Declared in `pyproject.toml` and pinned in `uv.lock`; managed with uv.
 | --- | --- |
 | Data stores | PostgreSQL database `openspec20261104` on localhost, configured through `DATABASE_URL`. Only Django's built-in tables exist; game and score state is still held in the client-side Redux store. |
 | Backend / APIs | Django serves the page and static files. No API endpoints are declared. |
-| Infrastructure as Code | None identified in the repository configuration. |
-| Hosting / deployment | Not specified by the repository. A production-style local run uses `collectstatic` and WhiteNoise. |
+| Infrastructure as Code | `docker-compose.yml` (Docker Compose) defines the production `web` and `db` services and the `pgdata` volume. |
+| Hosting / deployment | Single server running `docker compose up -d --build` from a checkout; gunicorn serves Django over plain HTTP, with built assets served by WhiteNoise. No TLS termination is included. |
 | SaaS / commercial software | No SaaS or commercial runtime dependency is declared. npm and PyPI are the package registries referenced by the lockfiles. |
-| Operating system / container | No production operating system, container image, or container orchestration platform is specified. |
+| Operating system / container | Multi-stage `Dockerfile` (`node:lts-slim` build stage, `python:3.13-slim` runtime, non-root user); database image `postgres:17`. Host OS is not specified; Docker Engine with the Compose plugin is required. |
 
 “None identified” means no corresponding technology is declared in the project
 files inspected; it does not assert that external services are not used outside
