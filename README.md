@@ -1,96 +1,39 @@
 # Vibe-tac-slop
 
-A tic-tac-toe game for one device, built with React, Redux Toolkit and shadcn/ui (Tailwind CSS v4), using Vite and TypeScript. Play against another person on the same device, or against the computer.
+A tic-tac-toe game built to test development with [OpenSpec](https://openspec.dev/) and Claude Code.
 
-X always moves first. The game detects wins and draws, highlights the winning line, and keeps a running score until the page is reloaded. When a game ends, click any cell to start the next one.
+Developed in reverse order compared to traditional development: first a simple react app implemeting a simple tic-tac-toe game was created, then the rest of the stack was progressively added.
 
-From top to bottom the page shows the logo and title, the score, the board, the status line, the **Reset** button, and the game controls.
+## Tech stack
+See also: [TECHSTACK.md](TECHSTACK.md)
 
-The **Reset** button under the board clears it at any time. It is hidden on an empty board, but keeps its space so the page doesn't jump. Resetting a game in progress counts as a forfeit: in two-player games the player whose turn it is loses, and against the computer you always lose, whoever's turn it is. The status then opens with "X forfeited." (or "You forfeited." against the computer) until a player (not the computer) next places a mark. Resetting a finished game just clears the board.
+### Front
+- [shadcn/ui](https://ui.shadcn.com/) components
+- Typescript
+- React
+- Redux
+- Vite
 
-Use the switch in the top-right corner to change between light and dark mode. The first time you visit, it follows your system setting; after that your choice is remembered in the browser. The logo beside the title turns white in dark mode. The browser tab icon (`static/favicon.svg`) is the same logo, but it follows your system's light or dark setting rather than the in-app switch, because browsers draw it outside the page.
+### Back
+- Python
+- Django
+- Postgres
 
-## Choosing an opponent
-
-Below the board, the **You play as** switch chooses whether you play **X** (left) or **O** (right) against the computer. Next to it, pick the opponent from the drop-down: **Computer (Medium)** (the default), **Computer (Easy)**, **Computer (Hard)**, or **Human** for two players taking turns on one device. The side switch is hidden for two-player games. If you play O, the computer makes the opening move. The computer moves on its own about half a second after your turn.
-
-Both choices are disabled while a game is in progress. You can change them on an empty board or once the game has ended. Changing either one starts a new game and resets the score to zero.
-
-Against the computer the score shows **You**, **Opponent** and **Draws**. Two-player games show **X wins**, **O wins** and **Draws**.
-
-For each move, the computer picks one of three strategies at random:
-
-- **Perfect**: the best possible move (full minimax search).
-- **Tactical**: complete its own line if it can, otherwise block yours, otherwise any empty cell.
-- **Random**: any empty cell.
-
-| Difficulty | Perfect | Tactical | Random |
-| ---------- | ------- | -------- | ------ |
-| Easy       | 1%      | 9%       | 90%    |
-| Medium     | 10%     | 50%      | 40%    |
-| Hard       | 40%     | 50%      | 10%    |
-
-Every level can be beaten: even Hard plays its best move only two times in five, though it is tactical or better 90% of the time.
-
-## Prerequisites
-
-- Node.js 20 or later (LTS recommended), with npm
-- [uv](https://docs.astral.sh/uv/) for Python (Python 3.13 or later; uv can install it)
-- PostgreSQL, with a database and role for the app (see `.env.example`)
-
-## Getting started
-
-```sh
-npm install                 # install JavaScript dependencies
-uv sync                     # install Python dependencies into .venv
-cp .env.example .env        # local settings (git-ignored); edit if your database differs
-uv run manage.py migrate    # create Django's tables in PostgreSQL
-```
-
-Django serves the app and Vite serves its source with hot reload, so both must run. The script starts them together (Ctrl+C stops both):
-
-```sh
-./start-dev.sh
-```
-
-Or run them yourself in two terminals:
-
-```sh
-npm run dev                  # Vite asset server on http://localhost:5173
-uv run manage.py runserver   # Django on http://localhost:8000
-```
-
-Open **http://localhost:8000** (not port 5173). Edits to the React code and styles appear without a reload.
-
-### Production-style run
-
-Django serves the built files itself (through WhiteNoise); no Vite server is needed:
-
-```sh
-npm run build                          # writes dist/ and dist/manifest.json
-uv run manage.py collectstatic --noinput
-DEBUG=False uv run manage.py runserver
-```
-
-Without a build, `DEBUG=False` pages fail with a 500 error; the server log names the missing `dist/manifest.json`.
-
-### Backend tests
-
-Django's tests create a throwaway database, so the PostgreSQL role needs `CREATEDB`:
-
-```sh
-sudo -u postgres psql -c 'ALTER ROLE openspec20261104 CREATEDB'   # once
-uv run manage.py test
-```
+### Tests
+- Vitest
 
 ## Scripts
 
-| Command           | What it does                                     |
-| ----------------- | ------------------------------------------------ |
-| `npm run dev`     | Start the Vite asset server with hot reload (used through Django) |
-| `npm test`        | Run the unit and component tests once (Vitest)   |
-| `npm run build`   | Type-check and build for production into `dist/` |
-| `npm run lint`    | Lint with Oxlint                                 |
+| Command             | What it does                                                   |
+| ------------------- | -------------------------------------------------------------- |
+| `npm test`          | Run the frontend tests once (Vitest)                           |
+| `npm run lint`      | Lint with Oxlint; warnings fail as well as errors              |
+| `npm run typecheck` | Type-check the app and tooling projects (`tsc -b`)             |
+| `uv run manage.py test` | Run the Django tests (needs PostgreSQL, see `.env.example`) |
+
+## Continuous integration
+
+Every push to any branch runs [.github/workflows/tests.yml](.github/workflows/tests.yml) on GitHub Actions: `npm run lint` (warnings fail), `npm run typecheck`, `npm test`, and `uv run manage.py test` against a temporary PostgreSQL. Results appear in the repository's Actions tab and as the status on each commit. A newer push to a branch cancels its unfinished run.
 
 ## Project layout
 
