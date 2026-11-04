@@ -1,22 +1,13 @@
 import { useAppSelector } from '@/app/hooks'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { selectScoreTallies } from '../selectors'
 
 export function Scoreboard() {
   const tallies = useAppSelector(selectScoreTallies)
 
   return (
-    <Card className="scoreboard" role="region" aria-labelledby="scoreboard-title">
-      <CardHeader>
-        <CardTitle
-          id="scoreboard-title"
-          className="scoreboard-title"
-          role="heading"
-          aria-level={2}
-        >
-          Score
-        </CardTitle>
-      </CardHeader>
+    // No visible heading; the region keeps the name "Score" for screen readers.
+    <Card className="scoreboard" role="region" aria-label="Score">
       <CardContent>
         <dl className="tallies">
           {tallies.map((t) => (

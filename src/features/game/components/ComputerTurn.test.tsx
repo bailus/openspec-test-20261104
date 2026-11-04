@@ -46,7 +46,7 @@ describe('computer takes its turn', () => {
       store.dispatch(setOpponent('easy'))
     })
     await user.click(cells()[4])
-    expect(status()).toHaveTextContent("Computer's turn (O)")
+    expect(status()).toHaveTextContent("Computer's turn")
 
     await advance(COMPUTER_MOVE_DELAY_MS - 1)
     expect(markCount()).toBe(1)
@@ -55,7 +55,7 @@ describe('computer takes its turn', () => {
     // Best replies to a centre opening are the corners; roll 0 takes the first, cell 0.
     expect(marks()[0]).toBe('O')
     expect(markCount()).toBe(2)
-    expect(status()).toHaveTextContent('Your turn (X)')
+    expect(status()).toHaveTextContent('Your turn')
   })
 
   test("makes no move once the human's move ends the game", async () => {
@@ -72,11 +72,11 @@ describe('computer takes its turn', () => {
       }
     })
     await user.click(cells()[2])
-    expect(status()).toHaveTextContent('You win! (X)')
+    expect(status()).toHaveTextContent('You win!')
 
     await advance(COMPUTER_MOVE_DELAY_MS * 4)
     expect(markCount()).toBe(5)
-    expect(status()).toHaveTextContent('You win! (X)')
+    expect(status()).toHaveTextContent('You win!')
   })
 })
 
@@ -104,7 +104,7 @@ describe("board during the computer's turn", () => {
       store.dispatch(setOpponent('hard'))
     })
     await user.click(cells()[4])
-    expect(status()).toHaveTextContent("Computer's turn (O)")
+    expect(status()).toHaveTextContent("Computer's turn")
 
     cells()[0].focus()
     for (let i = 0; i < 9; i++) {
@@ -124,12 +124,12 @@ describe('computer as X and cancelled moves', () => {
       store.dispatch(setOpponent('hard'))
       store.dispatch(setHumanPlayer('O'))
     })
-    expect(status()).toHaveTextContent("Computer's turn (X)")
+    expect(status()).toHaveTextContent("Computer's turn")
 
     await advance(COMPUTER_MOVE_DELAY_MS)
     expect(markCount()).toBe(1)
     expect(marks().filter((m) => m === 'X')).toHaveLength(1)
-    expect(status()).toHaveTextContent('Your turn (O)')
+    expect(status()).toHaveTextContent('Your turn')
   })
 
   test('opens as X again after a restart from the board', async () => {
@@ -147,15 +147,15 @@ describe('computer as X and cancelled moves', () => {
       }
       store.dispatch(computerMove({ index: 2, gameId: store.getState().game.gameId }))
     })
-    expect(status()).toHaveTextContent('Computer wins (X) Click the board to play again.')
+    expect(status()).toHaveTextContent('Computer wins. Click the board to play again.')
 
     await user.click(cells()[8])
     expect(markCount()).toBe(0)
-    expect(status()).toHaveTextContent("Computer's turn (X)")
+    expect(status()).toHaveTextContent("Computer's turn")
 
     await advance(COMPUTER_MOVE_DELAY_MS)
     expect(markCount()).toBe(1)
-    expect(status()).toHaveTextContent('Your turn (O)')
+    expect(status()).toHaveTextContent('Your turn')
   })
 
   // A computer move can only be pending while the options are unlocked when it is the
@@ -173,7 +173,7 @@ describe('computer as X and cancelled moves', () => {
 
     await advance(COMPUTER_MOVE_DELAY_MS * 4)
     expect(markCount()).toBe(0)
-    expect(status()).toHaveTextContent('Your turn (X)')
+    expect(status()).toHaveTextContent('Your turn')
   })
 
   test('changing difficulty before the opening move: empty at 499 ms and one X at 500 ms', async () => {

@@ -4,6 +4,7 @@ import reducer, {
   computerMove,
   initialState,
   playMove,
+  resetGame,
   setHumanPlayer,
   setOpponent,
 } from './gameSlice'
@@ -257,4 +258,128 @@ describe('computer opponent state', () => {
     expect(state.board.every((c) => c !== null)).toBe(true)
     expect(state.score).toEqual({ X: 0, O: 0, draws: 1 })
   })
+})
+
+describe('resetGame', () => {
+  function vsComputer(side: 'X' | 'O' = 'X') {
+    return reducer(reducer(initialState, setOpponent('hard')), setHumanPlayer(side))
+  }
+  function cpu(state: GameState, index: number): GameState {
+    return reducer(state, computerMove({ index, gameId: state.gameId }))
+  }
+  const empty = Array(9).fill(null)
+
+  test('does nothing on an empty board', () => {
+    const state = reducer(twoPlayer, resetGame())
+    expect(state).toEqual(twoPlayer)
+    const pendingOpening = vsComputer('O')
+    expect(reducer(pendingOpening, resetGame()).gameId).toBe(pendingOpening.gameId)
+  })
+
+  test('two-player, X to move: X forfeits and O scores', () => {
+    const before = play([4, 0])
+    const state = reducer(before, resetGame())
+    expect(state.score).toEqual({ X: 0, O: 1, draws: 0 })
+    expect(state.forfeitedBy).toBe('X')
+    expect(state.board).toEqual(empty)
+    expect(state.currentPlayer).toBe('X')
+    expect(state.gameId).toBe(before.gameId + 1)
+  })
+
+  test('two-player, O to move: O forfeits and X scores', () => {
+    const state = reducer(play([4]), resetGame())
+    expect(state.score).toEqual({ X: 1, O: 0, draws: 0 })
+    expect(state.forfeitedBy).toBe('O')
+  })
+
+  test.each(['X', 'O'] as const)(
+    'against the computer the human (%s) forfeits on their own turn',
+    (side) => {
+      let state = vsComputer(side)
+      state = side === 'X' ? play([4], state) : cpu(state, 4)
+      state = side === 'X' ? cpu(state, 0) : state
+      expect(state.currentPlayer).toBe(side)
+      const after = reducer(state, resetGame())
+      const computer = side === 'X' ? 'O' : 'X'
+      expect(after.score[computer]).toBe(1)
+      expect(after.score[side]).toBe(0)
+      expect(after.forfeitedBy).toBe(side)
+    },
+  )
+
+  test.each(['X', 'O'] as const)(
+    "against the computer the human (%s) forfeits even on the computer's turn",
+    (side) => {
+      let state = vsComputer(side)
+      state = side === 'X' ? play([4], state) : play([0], cpu(state, 4))
+      expect(state.currentPlayer).not.toBe(side)
+      const after = reducer(state, resetGame())
+      const computer = side === 'X' ? 'O' : 'X'
+      expect(after.score[computer]).toBe(1)
+      expect(after.score[side]).toBe(0)
+      expect(after.forfeitedBy).toBe(side)
+    },
+  )
+
+  test.each([
+    ['win', X_ROW_WIN, { X: 1, O: 0, draws: 0 }],
+    ['draw', DRAW, { X: 0, O: 0, draws: 1 }],
+  ] as const)('after a %s it only starts a new game', (_, moves, score) => {
+    const finished = play([...moves])
+    const state = reducer(finished, resetGame())
+    expect(state.score).toEqual(score)
+    expect(state.gameId).toBe(finished.gameId + 1)
+    expect(state.board).toEqual(empty)
+    expect(state.forfeitedBy).toBeNull()
+  })
+
+  test('keeps the opponent and side', () => {
+    const state = reducer(play([4], vsComputer('X')), resetGame())
+    expect(state.opponent).toBe('hard')
+    expect(state.humanPlayer).toBe('X')
+  })
+})
+
+describe('forfeitedBy', () => {
+  const forfeited = reducer(play([4]), resetGame()) // O forfeited, X to move
+
+  test('is cleared when a person places a mark', () => {
+    expect(reducer(forfeited, playMove(0)).forfeitedBy).toBeNull()
+  })
+
+  test("is kept when a person's move is refused on the computer's turn", () => {
+    let state = reducer(reducer(initialState, setHumanPlayer('O')), setOpponent('hard'))
+    state = reducer(cpuMove(state, 4), playMove(0))
+    state = reducer(state, resetGame()) // the computer (X) is about to open
+    expect(state.forfeitedBy).toBe('O')
+    state = reducer(state, playMove(1))
+    expect(state.board[1]).toBeNull()
+    expect(state.forfeitedBy).toBe('O')
+  })
+
+  test('is cleared when a finished game is restarted from the board', () => {
+    const state: GameState = { ...play(X_ROW_WIN), forfeitedBy: 'O' }
+    expect(reducer(state, playMove(0)).forfeitedBy).toBeNull()
+  })
+
+  test('is cleared by an opponent or side change', () => {
+    expect(reducer(forfeited, setOpponent('easy')).forfeitedBy).toBeNull()
+    const vsCpu = reducer(reducer(initialState, playMove(4)), resetGame())
+    expect(vsCpu.forfeitedBy).toBe('X')
+    expect(reducer(vsCpu, setHumanPlayer('O')).forfeitedBy).toBeNull()
+  })
+
+  test("is kept through the computer's moves", () => {
+    let state = reducer(reducer(initialState, setHumanPlayer('O')), setOpponent('hard'))
+    state = reducer(cpuMove(state, 4), playMove(0))
+    state = reducer(state, resetGame())
+    expect(state.forfeitedBy).toBe('O')
+    state = cpuMove(state, 4)
+    expect(state.board[4]).toBe('X')
+    expect(state.forfeitedBy).toBe('O')
+  })
+
+  function cpuMove(state: GameState, index: number): GameState {
+    return reducer(state, computerMove({ index, gameId: state.gameId }))
+  }
 })

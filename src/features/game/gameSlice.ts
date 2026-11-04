@@ -28,6 +28,11 @@ export interface GameState {
   humanPlayer: Player
   /** Goes up on every new game, so a computer move planned for an earlier game can be rejected. */
   gameId: number
+  /**
+   * The mark that forfeited the previous game with Reset, for the status notice. Cleared when
+   * a person next places a mark, another new game starts, or the opponent or side changes.
+   */
+  forfeitedBy: Player | null
 }
 
 export interface ComputerMovePayload {
@@ -43,6 +48,7 @@ export const initialState: GameState = {
   opponent: 'medium',
   humanPlayer: 'X',
   gameId: 0,
+  forfeitedBy: null,
 }
 
 function isGameOver(board: readonly Cell[]): boolean {
@@ -86,6 +92,7 @@ function startNewGame(state: GameState): void {
 
 function startOver(state: GameState): void {
   startNewGame(state)
+  state.forfeitedBy = null
   state.score = { X: 0, O: 0, draws: 0 }
 }
 
@@ -102,10 +109,30 @@ export const gameSlice = createSlice({
       if (!isValidIndex(action.payload)) return
       if (isGameOver(state.board)) {
         startNewGame(state)
+        state.forfeitedBy = null
         return
       }
       if (isComputerToMove(state)) return
+      const before = state.board[action.payload]
       applyMove(state, action.payload)
+      if (state.board[action.payload] !== before) state.forfeitedBy = null
+    },
+    /**
+     * The Reset button. Mid-game this is a forfeit: in two-player play the player to move
+     * loses; against the computer the human always loses, so a reset during the computer's
+     * turn cannot be used to collect wins. Then a new game starts. Ignored on an empty board.
+     */
+    resetGame(state) {
+      if (state.board.every((cell) => cell === null)) return
+      if (isInProgress(state)) {
+        const loser = state.opponent === 'human' ? state.currentPlayer : state.humanPlayer
+        state.score[loser === 'X' ? 'O' : 'X'] += 1
+        startNewGame(state)
+        state.forfeitedBy = loser
+        return
+      }
+      startNewGame(state)
+      state.forfeitedBy = null
     },
     /** The computer's move. Ignored unless it is the computer's turn in the game it was planned for. */
     computerMove(state, action: PayloadAction<ComputerMovePayload>) {
@@ -130,5 +157,6 @@ export const gameSlice = createSlice({
   },
 })
 
-export const { playMove, computerMove, setOpponent, setHumanPlayer } = gameSlice.actions
+export const { playMove, computerMove, resetGame, setOpponent, setHumanPlayer } =
+  gameSlice.actions
 export default gameSlice.reducer

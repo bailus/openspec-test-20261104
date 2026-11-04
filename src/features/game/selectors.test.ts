@@ -4,6 +4,7 @@ import reducer, {
   computerMove,
   initialState,
   playMove,
+  resetGame,
   setHumanPlayer,
   setOpponent,
 } from './gameSlice'
@@ -103,23 +104,34 @@ describe('selectors against the computer', () => {
     expect(selectIsComputerTurn(vsComputer('X', [0, 3, 1, 4, 2]))).toBe(false)
   })
 
-  test('says "Your turn" and "Computer\'s turn" with the mark', () => {
-    expect(selectStatus(vsComputer('X'))).toBe('Your turn (X)')
-    expect(selectStatus(vsComputer('X', [4]))).toBe("Computer's turn (O)")
-    expect(selectStatus(vsComputer('O'))).toBe("Computer's turn (X)")
-    expect(selectStatus(vsComputer('O', [4]))).toBe('Your turn (O)')
+  test('says "Your turn" and "Computer\'s turn" without the mark', () => {
+    expect(selectStatus(vsComputer('X'))).toBe('Your turn')
+    expect(selectStatus(vsComputer('X', [4]))).toBe("Computer's turn")
+    expect(selectStatus(vsComputer('O'))).toBe("Computer's turn")
+    expect(selectStatus(vsComputer('O', [4]))).toBe('Your turn')
   })
 
   test('announces a human win from the human point of view', () => {
     // O takes 2, 4, 6
-    expect(selectStatus(vsComputer('O', [0, 2, 1, 4, 8, 6]))).toBe('You win! (O) Click the board to play again.')
-    expect(selectStatus(vsComputer('X', [0, 3, 1, 4, 2]))).toBe('You win! (X) Click the board to play again.')
+    expect(selectStatus(vsComputer('O', [0, 2, 1, 4, 8, 6]))).toBe('You win! Click the board to play again.')
+    expect(selectStatus(vsComputer('X', [0, 3, 1, 4, 2]))).toBe('You win! Click the board to play again.')
   })
 
   test('announces a computer win', () => {
     // O takes 3, 4, 5 (middle row)
-    expect(selectStatus(vsComputer('X', [0, 3, 1, 4, 8, 5]))).toBe('Computer wins (O) Click the board to play again.')
-    expect(selectStatus(vsComputer('O', [0, 3, 1, 4, 2]))).toBe('Computer wins (X) Click the board to play again.')
+    expect(selectStatus(vsComputer('X', [0, 3, 1, 4, 8, 5]))).toBe('Computer wins. Click the board to play again.')
+    expect(selectStatus(vsComputer('O', [0, 3, 1, 4, 2]))).toBe('Computer wins. Click the board to play again.')
+  })
+
+  test('never names the mark in brackets', () => {
+    const states = [
+      vsComputer('X'),
+      vsComputer('X', [4]),
+      vsComputer('O'),
+      vsComputer('O', [0, 2, 1, 4, 8, 6]),
+      vsComputer('X', [0, 3, 1, 4, 8, 5]),
+    ]
+    for (const state of states) expect(selectStatus(state)).not.toMatch(/\((X|O)\)/)
   })
 
   test('announces a draw', () => {
@@ -151,8 +163,36 @@ describe('score tallies', () => {
     expect(rows(withScore('human', 'O'))).toEqual(['X wins: 3', 'O wins: 1', 'Draws: 2'])
   })
 
-  test('against the computer, "Your wins" follows the human side', () => {
-    expect(rows(withScore('medium', 'X'))).toEqual(['Your wins: 3', 'Opponent wins: 1', 'Draws: 2'])
-    expect(rows(withScore('hard', 'O'))).toEqual(['Your wins: 1', 'Opponent wins: 3', 'Draws: 2'])
+  test('against the computer, "You" follows the human side', () => {
+    expect(rows(withScore('medium', 'X'))).toEqual(['You: 3', 'Opponent: 1', 'Draws: 2'])
+    expect(rows(withScore('hard', 'O'))).toEqual(['You: 1', 'Opponent: 3', 'Draws: 2'])
+  })
+})
+
+describe('forfeit notice', () => {
+  test('two-player: names the mark that forfeited', () => {
+    const twoPlayer = reducer(initialState, setOpponent('human'))
+    const game = reducer(reducer(twoPlayer, playMove(4)), resetGame()) // O was to move
+    expect(selectStatus({ game })).toBe("O forfeited. X's turn")
+  })
+
+  test('against the computer: "You forfeited." on the human turn', () => {
+    const game = reducer(reducer(initialState, playMove(4)), resetGame())
+    expect(selectStatus({ game })).toBe('You forfeited. Your turn')
+  })
+
+  test("against the computer: \"You forfeited.\" before the computer opens as X", () => {
+    let game = reducer(reducer(initialState, setHumanPlayer('O')), setOpponent('hard'))
+    game = reducer(game, computerMove({ index: 4, gameId: game.gameId }))
+    game = reducer(game, resetGame())
+    expect(selectStatus({ game })).toBe("You forfeited. Computer's turn")
+    game = reducer(game, computerMove({ index: 0, gameId: game.gameId }))
+    expect(selectStatus({ game })).toBe('You forfeited. Your turn')
+  })
+
+  test('is gone once a person places a mark', () => {
+    let game = reducer(reducer(initialState, playMove(4)), resetGame())
+    game = reducer(game, playMove(0))
+    expect(selectStatus({ game })).not.toContain('forfeited')
   })
 })

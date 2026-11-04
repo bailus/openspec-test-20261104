@@ -12,17 +12,33 @@
   padding: 2rem 1rem;
 }
 
+/* Logo and title, left-aligned to the width of the controls and board below. */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.game-logo {
+  height: 2.75rem;
+  width: auto;
+}
+
 .game-title {
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/* Opponent and side choices, side by side. They wrap only if a screen is too narrow for both. */
+/* Side and opponent choices, at opposite edges. They wrap only if a screen is too narrow for both. */
 .opponent-picker {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem 2rem;
   width: 100%;
@@ -38,28 +54,44 @@
 .picker-label {
   font-size: 0.875rem;
   font-weight: 600;
-  /* Same line height for the shadcn Label ("Opponent") and the plain span ("You play"). */
+  /* Same line height for the shadcn Label ("Opponent") and the plain span ("You play as"). */
   line-height: 1;
 }
 
-/* Overrides the RadioGroup's grid. */
-.picker-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-}
-
-.picker-option {
+/* "X [switch] O": the letters sit on the side of the switch they select. */
+.side-switch {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  /* Match the drop-down's height so the two groups line up. */
+  min-height: 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.side-mark {
+  cursor: pointer;
+  user-select: none;
+}
+
+.side-switch[data-disabled] .side-mark {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .status {
-  min-height: 1.75rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  /* Room for two lines, so a result plus the play-again hint can wrap at phone widths
+     without pushing the Reset button and the score down. */
+  min-height: 2lh;
+  margin-top: -0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
   text-align: center;
+}
+
+.reset-button {
+  margin-top: -0.5rem;
 }
 
 .board {
@@ -104,13 +136,15 @@
   outline-offset: 2px;
 }
 
+/* Plain tallies rather than a card: no border, shadow, fill or card padding. Unlayered,
+   so these override the shadcn Card's Tailwind utilities. */
 .scoreboard {
   width: 100%;
   max-width: 22rem;
-}
-
-.scoreboard-title {
-  text-align: center;
+  padding-block: 0;
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .tallies {

@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit'
 import { type GameState, isComputerToMove } from './gameSlice'
-import { calculateWinner, isBoardFull } from './logic'
+import { type Player, calculateWinner, isBoardFull } from './logic'
 
 /** Any root state that mounts the game slice under `game`. */
 export interface GameRootState {
@@ -13,6 +13,7 @@ export const selectScore = (state: GameRootState) => state.game.score
 export const selectOpponent = (state: GameRootState) => state.game.opponent
 export const selectHumanPlayer = (state: GameRootState) => state.game.humanPlayer
 export const selectGameId = (state: GameRootState) => state.game.gameId
+export const selectForfeitedBy = (state: GameRootState) => state.game.forfeitedBy
 
 const selectResult = createSelector([selectBoard], (board) => calculateWinner(board))
 
@@ -42,23 +43,42 @@ export const selectIsComputerTurn = (state: GameRootState) =>
 
 export const PLAY_AGAIN_HINT = 'Click the board to play again.'
 
+function describeGame(
+  winner: Player | null,
+  isDraw: boolean,
+  currentPlayer: Player,
+  vsComputer: boolean,
+  humanPlayer: Player,
+): string {
+  if (isDraw) return `It's a draw. ${PLAY_AGAIN_HINT}`
+  if (winner) {
+    const result = !vsComputer
+      ? `${winner} wins!`
+      : winner === humanPlayer
+        ? 'You win!'
+        : 'Computer wins.'
+    return `${result} ${PLAY_AGAIN_HINT}`
+  }
+  if (!vsComputer) return `${currentPlayer}'s turn`
+  return currentPlayer === humanPlayer ? 'Your turn' : "Computer's turn"
+}
+
+/** The status line, led by a forfeit notice after a mid-game Reset. */
 export const selectStatus = createSelector(
-  [selectWinner, selectIsDraw, selectCurrentPlayer, selectOpponent, selectHumanPlayer],
-  (winner, isDraw, currentPlayer, opponent, humanPlayer) => {
+  [
+    selectWinner,
+    selectIsDraw,
+    selectCurrentPlayer,
+    selectOpponent,
+    selectHumanPlayer,
+    selectForfeitedBy,
+  ],
+  (winner, isDraw, currentPlayer, opponent, humanPlayer, forfeitedBy) => {
     const vsComputer = opponent !== 'human'
-    if (isDraw) return `It's a draw. ${PLAY_AGAIN_HINT}`
-    if (winner) {
-      const result = !vsComputer
-        ? `${winner} wins!`
-        : winner === humanPlayer
-          ? `You win! (${winner})`
-          : `Computer wins (${winner})`
-      return `${result} ${PLAY_AGAIN_HINT}`
-    }
-    if (!vsComputer) return `${currentPlayer}'s turn`
-    return currentPlayer === humanPlayer
-      ? `Your turn (${currentPlayer})`
-      : `Computer's turn (${currentPlayer})`
+    const status = describeGame(winner, isDraw, currentPlayer, vsComputer, humanPlayer)
+    if (forfeitedBy === null) return status
+    const notice = vsComputer ? 'You forfeited.' : `${forfeitedBy} forfeited.`
+    return `${notice} ${status}`
   },
 )
 
@@ -86,8 +106,8 @@ export const selectScoreTallies = createSelector(
     }
     const computer = humanPlayer === 'X' ? 'O' : 'X'
     return [
-      { key: 'you', label: 'Your wins', value: score[humanPlayer] },
-      { key: 'opponent', label: 'Opponent wins', value: score[computer] },
+      { key: 'you', label: 'You', value: score[humanPlayer] },
+      { key: 'opponent', label: 'Opponent', value: score[computer] },
       draws,
     ]
   },

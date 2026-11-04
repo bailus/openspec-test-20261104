@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="220" viewBox="0 0 200 220" fill="none">
+  <defs>
+    <mask id="gap" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="220">
+      <rect width="200" height="220" fill="#fff"/>
+      <circle cx="100" cy="85" r="52" stroke="#000" stroke-width="44"/>
+      <path d="M100 135v56" stroke="#000" stroke-width="40" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <g mask="url(#gap)" stroke="#000" stroke-linecap="round" stroke-width="30">
+    <path d="M30 25 170 140M170 25 30 140"/>
+    <path d="M36 128v36M164 128v52M100 100v10" stroke-width="22"/>
+  </g>
+  <g stroke="#000" stroke-linecap="round">
+    <circle cx="100" cy="85" r="52" stroke-width="24"/>
+    <path d="M100 130v62M68 128v24M132 128v38" stroke-width="20"/>
+  </g>
+  <circle cx="100" cy="202" r="12" fill="#000"/>
+</svg>

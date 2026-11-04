@@ -28,6 +28,8 @@ describe('Scoreboard and restarting', () => {
   test('starts at zero with mark-based labels in two-player play', () => {
     renderGame({ opponent: 'human' })
     expect(screen.getByRole('region', { name: 'Score' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Score' })).toBeNull()
+    expect(screen.queryByText('Score')).toBeNull()
     expect(rows()).toEqual(['X wins: 0', 'O wins: 0', 'Draws: 0'])
   })
 
@@ -82,15 +84,32 @@ describe('Scoreboard and restarting', () => {
     expect(cells()[0]).toHaveTextContent('O')
   })
 
-  test('the title reads "Tic-tac-slop" and there is no "New game" button', () => {
+  test('the title reads "Vibe-tac-slop"', () => {
     renderGame()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tic-tac-slop')
-    expect(screen.queryByRole('button', { name: 'New game' })).toBeNull()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Vibe-tac-slop')
+  })
+
+  test('lays out score, board, status, Reset and the game controls in that order', async () => {
+    const { user } = renderGame({ opponent: 'human' })
+    await user.click(cells()[4]) // shows the Reset button
+    const order = [
+      screen.getByRole('heading', { level: 1 }),
+      screen.getByRole('region', { name: 'Score' }),
+      screen.getByRole('group', { name: 'Tic-tac-toe board' }),
+      screen.getByRole('status'),
+      screen.getByRole('button', { name: 'Reset' }),
+      screen.getByRole('combobox', { name: 'Opponent' }),
+    ]
+    for (let i = 1; i < order.length; i++) {
+      expect(
+        order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    }
   })
 
   test('against the computer the labels follow the human side', () => {
     const { store } = renderGame() // default: Computer (Medium), human X
-    expect(rows()).toEqual(['Your wins: 0', 'Opponent wins: 0', 'Draws: 0'])
+    expect(rows()).toEqual(['You: 0', 'Opponent: 0', 'Draws: 0'])
 
     // Human X wins the top row; computer O played 3 and 4.
     act(() => {
@@ -103,12 +122,12 @@ describe('Scoreboard and restarting', () => {
       }
       store.dispatch(playMove(2))
     })
-    expect(rows()).toEqual(['Your wins: 1', 'Opponent wins: 0', 'Draws: 0'])
+    expect(rows()).toEqual(['You: 1', 'Opponent: 0', 'Draws: 0'])
 
     // Switching side after the game resets the score; the human is now O.
     act(() => {
       store.dispatch(setHumanPlayer('O'))
     })
-    expect(rows()).toEqual(['Your wins: 0', 'Opponent wins: 0', 'Draws: 0'])
+    expect(rows()).toEqual(['You: 0', 'Opponent: 0', 'Draws: 0'])
   })
 })

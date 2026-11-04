@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { playMove } from '../gameSlice'
 import {
@@ -8,7 +9,7 @@ import {
 } from '../selectors'
 import { Square } from './Square'
 
-export function Board() {
+export function Board({ ref }: { ref?: Ref<HTMLDivElement> }) {
   const dispatch = useAppDispatch()
   const board = useAppSelector(selectBoard)
   const winningLine = useAppSelector(selectWinningLine)
@@ -16,7 +17,7 @@ export function Board() {
   const isComputerTurn = useAppSelector(selectIsComputerTurn)
 
   return (
-    <div className="board" role="group" aria-label="Tic-tac-toe board">
+    <div ref={ref} className="board" role="group" aria-label="Tic-tac-toe board">
       {board.map((value, index) => (
         <Square
           key={index}
